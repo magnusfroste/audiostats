@@ -59,3 +59,6 @@ The backend is deployed on Railway. To deploy:
 - Meeting transcription
 - Key insights and summary
 - Interactive visualization
+
+
+Hepp vad bra
