@@ -1,60 +1,61 @@
-# Meeting Analysis Dashboard
+# Meeting Insights
 
-En Next.js-applikation för att analysera mötesinspelningar med hjälp av AI. Applikationen transkriberar möten och genererar detaljerade insikter om mötets innehåll, deltagarengagemang och nyckelresultat.
+A tool for analyzing meeting audio files using AI to provide insights about participation, interaction, and content.
 
-## Funktioner
+## Project Structure
 
-- 🎙️ Stöd för olika ljudformat (mp3, mp4, wav, m4a)
-- 📝 Transkribering av möten
-- 📊 Detaljerad mötesanalys:
-  - Taltidsfördelning
-  - Deltagarengagemang
-  - Emotionell analys
-  - Nyckelämnen och beslut
-  - Åtgärdspunkter
-- 💡 AI-drivna insikter
-- 🎨 Modern och användarvänlig UI
+This is a monorepo containing both frontend and backend:
 
-## Teknisk Stack
+- `/frontend` - Next.js frontend application
+- `/backend` - Express.js backend server
 
-- **Frontend**: Next.js 14, React, TypeScript
-- **Styling**: Tailwind CSS
-- **AI**: OpenAI GPT-4 med audio
-- **Deployment**: Vercel
+## Development
 
-## Komma igång
+### Frontend
 
-1. Klona repositoryt
-2. Installera beroenden:
 ```bash
+cd frontend
 npm install
-```
-
-3. Skapa en `.env.local` fil med din OpenAI API-nyckel:
-```
-OPENAI_API_KEY=your_api_key_here
-```
-
-4. Starta utvecklingsservern:
-```bash
 npm run dev
 ```
 
-5. Öppna [http://localhost:3000](http://localhost:3000)
+The frontend will run on http://localhost:3000
 
-## Begränsningar
+### Backend
 
-- Maximal filstorlek: 25MB
-- Optimal möteslängd: 30-60 minuter
-- Maximal möteslängd: 2 timmar
+```bash
+cd backend
+npm install
+npm run dev
+```
 
-## Deploy på Vercel
+The backend will run on http://localhost:3001
 
-Projektet är optimerat för deployment på [Vercel Platform](https://vercel.com). Klicka på knappen nedan för att deploya:
+## Deployment
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/yourusername/your-repo-name)
+### Frontend
 
-## Licens
+The frontend is deployed on Vercel. To deploy:
+1. Go to Vercel and create a new project
+2. Select the `/frontend` directory during import
+3. Set the environment variables:
+   - `NEXT_PUBLIC_BACKEND_URL`: Your Railway backend URL
 
-MIT
-# audiostats
+### Backend
+
+The backend is deployed on Railway. To deploy:
+1. Go to Railway and create a new project
+2. Select the `/backend` directory during import
+3. Set the environment variables:
+   - `OPENAI_API_KEY`: Your OpenAI API key
+   - `PORT`: 3001 (or let Railway set it)
+
+## Features
+
+- Audio file analysis
+- Participant detection
+- Speaking time analysis
+- Interaction patterns
+- Meeting transcription
+- Key insights and summary
+- Interactive visualization
