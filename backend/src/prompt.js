@@ -1,14 +1,16 @@
-const generateAnalysisPrompt = (duration) => `Du är en expert på mötesanalys. Analysera följande mötesinspelning och returnera en detaljerad analys i JSON-format.
+const generateAnalysisPrompt = (duration) => `You are an expert in meeting analysis. Analyze the following meeting recording and return a detailed analysis in JSON format.
       
-Returnera ENDAST JSON med följande struktur:
+Return ONLY JSON with the following structure. IMPORTANT: Be consistent with speaker IDs throughout the JSON structure:
 {
   "participants": [
     {
-      "id": "speaker_1",
+      "id": "speaker_1",  // IMPORTANT: Use EXACTLY the same speaker_X ID throughout JSON
       "name": "Speaker 1",
       "speakingTime": 120.5,
       "interventions": 5,
-      "interactions": {"speaker_2": 3, "speaker_3": 2},
+      "interactions": {
+        "speaker_2": 3  // ONLY reference existing speaker IDs from the participants array
+      },
       "interruptionsMade": 2,
       "timesInterrupted": 1,
       "emotionalTone": {
@@ -22,53 +24,53 @@ Returnera ENDAST JSON med följande struktur:
   "transcript": [
     {
       "timestamp": "00:01:23",
-      "speaker": "Speaker 1",
-      "text": "Talad text här - RETURNERA HELA TEXTEN UTAN FÖRKORTNINGAR",
+      "speaker": "speaker_1",  // Use speaker ID, not name
+      "text": "Spoken text here - RETURN FULL TEXT WITHOUT ABBREVIATIONS",
       "emotion": "engaged",
-      "topic": "projektplanering"
+      "topic": "project planning"
     }
   ],
   "summary": {
     "totalDuration": ${duration},
     "totalSpeakingTime": 180.5,
     "totalTalkTime": 220.5,
-    "mostActive": "Speaker 1",
-    "leastActive": "Speaker 2",
+    "mostActive": "speaker_1",  // Use speaker ID, not name
+    "leastActive": "speaker_2",  // Use speaker ID, not name
     "averageSpeakingTime": 150.25,
     "interactionDensity": 2.5,
     "topicChanges": 4,
     "dominantSpeaker": {
-      "name": "Speaker 1",
+      "id": "speaker_1",  // Use speaker ID, not name
       "percentage": 45.5
     },
     "participationBalance": 85,
     "overallEngagement": 90,
     "topics": [
       {
-        "name": "Projektplanering",
+        "name": "Project Planning",
         "timeSpent": 300,
-        "participants": ["Speaker 1", "Speaker 2"],
+        "participants": ["speaker_1", "speaker_2"],  // Use speaker IDs
         "sentiment": "positive"
       }
     ],
     "decisions": [
       {
-        "topic": "Projektplanering",
-        "decision": "Starta utvecklingen nästa vecka",
-        "agreedBy": ["Speaker 1", "Speaker 2"]
+        "topic": "Project Planning",
+        "decision": "Start development next week",
+        "agreedBy": ["speaker_1", "speaker_2"]  // Use speaker IDs
       }
     ],
     "actionItems": [
       {
-        "description": "Skapa projektplan",
-        "assignedTo": "Speaker 1",
+        "description": "Create project plan",
+        "assignedTo": "speaker_1",  // Use speaker ID
         "mentionedAt": "00:15:30"
       }
     ],
     "discussionQuality": {
       "score": 85,
-      "strengths": ["god turtagning", "aktiv lyssning"],
-      "improvements": ["mer jämn fördelning av taltid"]
+      "strengths": ["good turn-taking", "active listening"],
+      "improvements": ["more balanced speaking time"]
     },
     "emotionalAnalysis": {
       "overallTone": "positive",
@@ -78,12 +80,12 @@ Returnera ENDAST JSON med följande struktur:
         "negative": 5
       },
       "dominantEmotions": ["engaged", "collaborative"],
-      "emotionalDynamics": "Stabil positiv ton med ökad entusiasm under projektdiskussioner"
+      "emotionalDynamics": "Stable positive tone with increased enthusiasm during project discussions"
     },
     "interactionPatterns": {
       "frequentInteractions": [
         {
-          "between": ["Speaker 1", "Speaker 2"],
+          "between": ["speaker_1", "speaker_2"],  // Use speaker IDs
           "count": 15,
           "nature": "collaborative"
         }
@@ -91,8 +93,8 @@ Returnera ENDAST JSON med följande struktur:
       "interruptions": {
         "total": 5,
         "mostFrequent": {
-          "interrupter": "Speaker 1",
-          "interrupted": "Speaker 2",
+          "interrupter": "speaker_1",  // Use speaker ID
+          "interrupted": "speaker_2",  // Use speaker ID
           "count": 2
         }
       }
@@ -100,48 +102,42 @@ Returnera ENDAST JSON med följande struktur:
   }
 }
 
-Viktig information:
-1. Transkribering:
-   - Inkludera HELA texten för varje talare
-   - Gör INGA förkortningar eller sammanfattningar av texten
-   - Behåll alla detaljer i konversationen
-   - Returnera texten exakt som den sägs
-   - Analysera känslomässig ton och ämne för varje uttalande
-2. Tidsmätning:
-   - totalDuration: ${duration} sekunder (hela ljudfilens längd)
-   - totalSpeakingTime: Summan av alla deltagares taltid i sekunder
-   - totalTalkTime: Total tid med aktivt tal (inklusive överlappande tal)
-   - speakingTime: Den faktiska tiden en person talar (i sekunder)
-   - timestamp: Tidpunkt i ljudfilen (MM:SS format)
+CRITICAL RULES for speaker IDs:
+1. First create a complete list of all speakers in the participants array
+2. Use EXACTLY the same speaker_X ID format throughout the JSON structure
+3. NEVER reference a speaker that doesn't exist in the participants array
+4. Use speaker IDs (speaker_1, speaker_2, etc) instead of names in all references
+5. Be consistent - the same speaker must have the same ID throughout the analysis
+6. Number speakers from 1 upwards without gaps (speaker_1, speaker_2, speaker_3, etc)
 
-Förklaring av fält:
-- interactionDensity: Genomsnittligt antal interaktioner per minut
-- topicChanges: Antal gånger samtalsämnet ändras markant
-- dominantSpeaker: Den som dominerar samtalet mest, med procentandel av total taltid
-- participationBalance: 0-100% där 100% betyder perfekt jämn fördelning av taltid
-- overallEngagement: 0-100% baserat på interaktioner, överlappande tal, och tonläge
-- totalTalkTime: Total tid med aktivt tal, inklusive överlappande tal
-- topics: Lista över diskuterade ämnen med tidsåtgång och deltagare
-- decisions: Viktiga beslut som fattades under mötet
-- actionItems: Identifierade åtgärdspunkter och ansvariga personer
-- discussionQuality: Bedömning av diskussionens kvalitet och förbättringsområden
-- emotionalAnalysis: Analys av känslomässig ton och dynamik i mötet
-- interactionPatterns: Mönster i hur deltagarna interagerar med varandra
+Important Information:
+1. Transcription:
+   - Include the COMPLETE text for each speaker
+   - Make NO abbreviations or summaries of the text
+   - Keep all details of the conversation
+   - Return the text exactly as spoken
+   - Analyze emotional tone and topic for each statement
+2. Time Measurement:
+   - totalDuration: ${duration} seconds (total audio file length)
+   - totalSpeakingTime: Sum of all participants' speaking time in seconds
+   - totalTalkTime: Total time with active speech (including overlapping speech)
+   - speakingTime: The actual time a person speaks (in seconds)
+   - timestamp: Time point in the audio file (MM:SS format)
 
-Var noga med att:
-1. ENDAST returnera JSON
-2. Använd speaker_1, speaker_2 etc som ID
-3. Avrunda alla tidsvärden till 1 decimal
-4. Inkludera alla fält som specificeras ovan
-5. Säkerställ att JSON är korrekt formaterat
-6. Använd exakt ${duration} sekunder som totalDuration
-7. Beräkna totalSpeakingTime som summan av alla deltagares taltid
-8. Beräkna totalTalkTime som total tid med aktivt tal (inklusive överlapp)
-9. Räkna speakingTime som den faktiska tiden varje person talar
-10. Ta hänsyn till överlappande tal vid tidsberäkning
-11. Analysera känslomässig ton och dynamik i konversationen
-12. Identifiera och dokumentera beslut och åtgärdspunkter
-13. Bedöm diskussionens kvalitet och ge konstruktiva förbättringsförslag
-14. RETURNERA HELA TRANSKRIBERINGEN UTAN ATT FÖRKORTA ELLER SAMMANFATTA`;
+Be sure to:
+1. ONLY return JSON
+2. Use speaker_1, speaker_2, etc as IDs CONSISTENTLY throughout the structure
+3. Round all time values to 1 decimal
+4. Include all fields specified above
+5. Ensure JSON is correctly formatted
+6. Use exactly ${duration} seconds as totalDuration
+7. Calculate totalSpeakingTime as the sum of all participants' speaking time
+8. Calculate totalTalkTime as total time with active speech (including overlap)
+9. Count speakingTime as the actual time each person speaks
+10. Consider overlapping speech in time calculations
+11. Analyze emotional tone and dynamics in the conversation
+12. Identify and document decisions and action items
+13. Assess discussion quality and provide constructive improvement suggestions
+14. RETURN THE COMPLETE TRANSCRIPTION WITHOUT ABBREVIATING OR SUMMARIZING`;
 
-module.exports = { generateAnalysisPrompt }; 
+module.exports = { generateAnalysisPrompt };
