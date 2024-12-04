@@ -1,0 +1,7 @@
+README.md
+.env
+.env.local
+backend
+backend/
+backend/*
+*.log 
