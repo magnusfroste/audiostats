@@ -56,7 +56,7 @@ export default function InteractionGraph({ participants }: InteractionGraphProps
       .force('link', d3.forceLink<Node, Link>(links).id(d => d.id))
       .force('charge', d3.forceManyBody().strength(-200))
       .force('center', d3.forceCenter(width / 2, height / 2))
-      .force('collision', d3.forceCollide().radius(d => (d.radius || 0) + 5));
+      .force('collision', d3.forceCollide<Node>().radius(d => d.radius + 5));
 
     // Create links
     const link = svg.append('g')
@@ -69,7 +69,7 @@ export default function InteractionGraph({ participants }: InteractionGraphProps
 
     // Create nodes
     const node = svg.append('g')
-      .selectAll('g')
+      .selectAll<SVGGElement, Node>('g')
       .data(nodes)
       .join('g')
       .call(d3.drag<SVGGElement, Node>()
