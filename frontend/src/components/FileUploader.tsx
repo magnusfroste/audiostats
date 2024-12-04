@@ -8,7 +8,7 @@ interface FileUploaderProps {
   disabled?: boolean;
 }
 
-const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 25MB
 const ACCEPTED_TYPES = {
   'audio/mpeg': ['.mp3'],
   'audio/wav': ['.wav'],
@@ -26,7 +26,7 @@ export function FileUploader({ onFileSelect, disabled = false }: FileUploaderPro
     if (rejectedFiles.length > 0) {
       const rejection = rejectedFiles[0];
       if (rejection.errors[0]?.code === 'file-too-large') {
-        setError('File is too large. Maximum size is 25MB.');
+        setError('File is too large. Maximum size is 50MB.');
       } else if (rejection.errors[0]?.code === 'file-invalid-type') {
         setError('Invalid file type. Please upload an MP3, WAV, M4A, or AAC file.');
       } else {
@@ -38,7 +38,7 @@ export function FileUploader({ onFileSelect, disabled = false }: FileUploaderPro
     if (acceptedFiles.length > 0 && !disabled) {
       const file = acceptedFiles[0];
       if (file.size > MAX_FILE_SIZE) {
-        setError('File is too large. Maximum size is 25MB.');
+        setError('File is too large. Maximum size is 50MB.');
         return;
       }
       onFileSelect(file);
@@ -88,7 +88,7 @@ export function FileUploader({ onFileSelect, disabled = false }: FileUploaderPro
               <>
                 <p className="font-medium">Drop your audio file here or click to browse</p>
                 <p className="mt-1">Supports MP3, WAV, M4A, and AAC</p>
-                <p className="mt-1 text-xs text-gray-500">Maximum file size: 25MB</p>
+                <p className="mt-1 text-xs text-gray-500">Maximum file size: 50MB</p>
               </>
             )}
           </div>
