@@ -1,4 +1,4 @@
-const generateAnalysisPrompt = (duration) => `You are an expert in meeting analysis. Analyze the following meeting recording and return a detailed analysis in JSON format.
+const generateAnalysisPrompt = (duration) => `You are an expert in meeting analysis. Analyze the meeting recording and return a detailed analysis in JSON format.
       
 Return ONLY JSON with the following structure. IMPORTANT: Be consistent with speaker IDs throughout the JSON structure:
 {
@@ -112,10 +112,9 @@ CRITICAL RULES for speaker IDs:
 
 Important Information:
 1. Transcription:
-   - Include the COMPLETE text for each speaker
+   - Transcribe the entire audio file
+   - Transcribe into the spoken language
    - Make NO abbreviations or summaries of the text
-   - Keep all details of the conversation
-   - Return the text exactly as spoken
    - Analyze emotional tone and topic for each statement
 2. Time Measurement:
    - totalDuration: ${duration} seconds (total audio file length)

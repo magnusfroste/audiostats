@@ -131,12 +131,12 @@ export default function InteractionGraph({ participants }: InteractionGraphProps
   return (
     <div className="space-y-4">
       <div className="bg-gray-50 p-4 rounded-lg text-sm space-y-2">
-        <h3 className="font-medium">Förklaring av grafen:</h3>
+        <h3 className="font-medium">Graph explanation:</h3>
         <ul className="space-y-1 text-gray-600">
-          <li>• Cirklarnas storlek visar taltid</li>
-          <li>• Linjernas tjocklek visar antal interaktioner</li>
-          <li>• Dra i cirklarna för att flytta runt dem</li>
-          <li>• Ju närmare cirklarna är, desto mer interagerar deltagarna</li>
+          <li>• Circle size represents speaking time</li>
+          <li>• Line thickness shows number of interactions</li>
+          <li>• Drag circles to move them around</li>
+          <li>• The closer the circles, the more the participants interact</li>
         </ul>
       </div>
 

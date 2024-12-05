@@ -10,6 +10,7 @@ import ParticipantCard from '@/components/ParticipantCard';
 import TranscriptViewer from '@/components/TranscriptViewer';
 import AdvancedAnalysisCard from '@/components/AdvancedAnalysisCard';
 import MeetingInsightsCard from '@/components/MeetingInsightsCard';
+import JsonDisplay from '@/components/JsonDisplay';
 import type { Participant, TranscriptEntry, AnalysisSummary } from '@/types/analysis';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
   const [summary, setSummary] = useState<AnalysisSummary | null>(null);
+  const [rawResponse, setRawResponse] = useState<any>(null);
 
   const analyzeAudio = async (file: File) => {
     setIsAnalyzing(true);
@@ -27,6 +29,7 @@ export default function Dashboard() {
     setParticipants([]);
     setTranscript([]);
     setSummary(null);
+    setRawResponse(null);
 
     try {
       // First check if backend is available
@@ -49,6 +52,7 @@ export default function Dashboard() {
         throw new Error(data.error || 'Failed to analyze audio file');
       }
 
+      setRawResponse(data);  // Store the raw response
       setParticipants(data.data.participants);
       setTranscript(data.data.transcript);
       setSummary(data.data.summary);
@@ -132,6 +136,11 @@ export default function Dashboard() {
                 <section className="bg-white rounded-lg shadow p-6">
                   <TranscriptViewer transcript={transcript} />
                 </section>
+              </div>
+            )}
+            {rawResponse && (
+              <div className="mt-16 mb-8">
+                <JsonDisplay data={rawResponse} />
               </div>
             )}
           </div>

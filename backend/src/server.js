@@ -142,7 +142,7 @@ app.post('/analyze', upload.single('audio'), async (req, res) => {
                 }
             ],
             temperature: 0.3,
-            max_tokens: 4000
+            max_tokens: 16384
         });
 
         console.log('OpenAI response received');
