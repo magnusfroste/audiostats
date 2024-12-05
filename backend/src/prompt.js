@@ -1,4 +1,4 @@
-const generateAnalysisPrompt = (duration) => `You are an expert in meeting analysis. Analyze the meeting recording and return a detailed analysis in JSON format.
+const generateAnalysisPrompt = (duration) => `You are an expert in meeting analysis. Analyze the meeting and return a detailed analysis in JSON format.
       
 Return ONLY JSON with the following structure. IMPORTANT: Be consistent with speaker IDs throughout the JSON structure:
 {
@@ -112,8 +112,7 @@ CRITICAL RULES for speaker IDs:
 
 Important Information:
 1. Transcription:
-   - Transcribe the entire audio file
-   - Transcribe into the spoken language
+   - Transcribe everything and transcribe into the language spoken in the meeting
    - Make NO abbreviations or summaries of the text
    - Analyze emotional tone and topic for each statement
 2. Time Measurement:
@@ -137,6 +136,7 @@ Be sure to:
 11. Analyze emotional tone and dynamics in the conversation
 12. Identify and document decisions and action items
 13. Assess discussion quality and provide constructive improvement suggestions
-14. RETURN THE COMPLETE TRANSCRIPTION WITHOUT ABBREVIATING OR SUMMARIZING`;
+14. RETURN THE COMPLETE TRANSCRIPTION OF EVERY SINGLE WORD IN THE MEETING
+15. Analyze emotional tone and dynamics in the conversation`;
 
 module.exports = { generateAnalysisPrompt };
