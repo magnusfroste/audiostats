@@ -17,7 +17,7 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "AudioStats - Mötes Analys",
+  title: "Meet Anna - Meeting Assistant",
   description: "Analysera dina möten med AI",
 };
 

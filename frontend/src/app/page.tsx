@@ -76,7 +76,7 @@ export default function Dashboard() {
     <ErrorBoundary>
       <main className="min-h-screen bg-gray-100 p-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Meeting Insights 1.0</h1>
+          <h1 className="text-3xl font-bold mb-8">Meet Anna - your experienced meeting assistant</h1>
           
           <div className="grid gap-6">
             {/* File Upload Section */}
