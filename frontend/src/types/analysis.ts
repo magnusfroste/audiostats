@@ -96,4 +96,15 @@ export interface AnalysisSummary {
   discussionQuality: DiscussionQuality;
   emotionalAnalysis: EmotionalAnalysis;
   interactionPatterns: InteractionPatterns;
-} 
+}
+
+export interface TranscriptSegment {
+  text: string;
+  start: number;
+  end: number;
+}
+
+export interface Transcript {
+  text: string;
+  segments: TranscriptSegment[];
+}

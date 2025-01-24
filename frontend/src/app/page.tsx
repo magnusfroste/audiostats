@@ -10,16 +10,21 @@ import TranscriptViewer from '@/components/TranscriptViewer';
 import AdvancedAnalysisCard from '@/components/AdvancedAnalysisCard';
 import MeetingInsightsCard from '@/components/MeetingInsightsCard';
 import JsonDisplay from '@/components/JsonDisplay';
-import type { Participant, TranscriptEntry, AnalysisSummary } from '@/types/analysis';
+import type { 
+  Participant, 
+  TranscriptEntry, 
+  AnalysisSummary,
+  Transcript
+} from '@/types/analysis';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [summary, setSummary] = useState(null);
-  const [participants, setParticipants] = useState([]);
-  const [transcript, setTranscript] = useState(null);
+  const [summary, setSummary] = useState<AnalysisSummary | null>(null);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [transcript, setTranscript] = useState<Transcript | null>(null);
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
