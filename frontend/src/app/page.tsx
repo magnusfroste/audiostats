@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import LoadingState from '@/components/LoadingState';
-import InteractionGraph from '@/components/InteractionGraph';
 import { FileUploader } from '@/components/FileUploader';
 import SummaryCard from '@/components/SummaryCard';
 import ParticipantCard from '@/components/ParticipantCard';
@@ -16,28 +15,17 @@ import type { Participant, TranscriptEntry, AnalysisSummary } from '@/types/anal
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
 
 export default function Dashboard() {
-  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [participants, setParticipants] = useState<Participant[]>([]);
-  const [transcript, setTranscript] = useState<TranscriptEntry[]>([]);
-  const [summary, setSummary] = useState<AnalysisSummary | null>(null);
-  const [rawResponse, setRawResponse] = useState<any>(null);
+  const [summary, setSummary] = useState(null);
+  const [participants, setParticipants] = useState([]);
+  const [transcript, setTranscript] = useState(null);
 
-  const analyzeAudio = async (file: File) => {
-    setIsAnalyzing(true);
+  const handleFileUpload = async (file: File) => {
+    setIsLoading(true);
     setError(null);
-    setParticipants([]);
-    setTranscript([]);
-    setSummary(null);
-    setRawResponse(null);
-
+    
     try {
-      // First check if backend is available
-      const healthCheck = await fetch(`${BACKEND_URL}/health`);
-      if (!healthCheck.ok) {
-        throw new Error('Backend server is not available. Please ensure the server is running.');
-      }
-
       const formData = new FormData();
       formData.append('audio', file);
 
@@ -46,29 +34,25 @@ export default function Dashboard() {
         body: formData,
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || 'Failed to analyze audio file');
+      if (!response.ok) {
+        throw new Error('Analysis failed');
       }
 
-      setRawResponse(data);  // Store the raw response
-      setParticipants(data.data.participants);
-      setTranscript(data.data.transcript);
-      setSummary(data.data.summary);
+      const rawResponse = await response.json();
+      
+      if (!rawResponse.success) {
+        throw new Error(rawResponse.error || 'Unknown error occurred');
+      }
+
+      const analysisData = rawResponse.data;
+      setSummary(analysisData.summary);
+      setParticipants(analysisData.participants);
+      setTranscript(analysisData.fullTranscript);
+      
     } catch (err) {
-      console.error('Error analyzing audio:', err);
-      if (err instanceof Error) {
-        if (err.message.includes('Failed to fetch')) {
-          setError('Could not connect to the server. Please ensure the backend is running.');
-        } else {
-          setError(err.message);
-        }
-      } else {
-        setError('An unexpected error occurred');
-      }
+      setError(err instanceof Error ? err.message : 'An error occurred');
     } finally {
-      setIsAnalyzing(false);
+      setIsLoading(false);
     }
   };
 
@@ -76,13 +60,13 @@ export default function Dashboard() {
     <ErrorBoundary>
       <main className="min-h-screen bg-gray-100 p-4">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Meet Anna - your experienced meeting assistant</h1>
+          <h1 className="text-3xl font-bold mb-8">Meet Anna - Your Team Focused Assistant</h1>
           
           <div className="grid gap-6">
             {/* File Upload Section */}
             <section className="bg-white rounded-lg shadow p-6">
               <h2 className="text-xl font-semibold mb-4">Upload Audio</h2>
-              <FileUploader onFileSelect={analyzeAudio} disabled={isAnalyzing} />
+              <FileUploader onFileSelect={handleFileUpload} disabled={isLoading} />
               {error && (
                 <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
                   {error}
@@ -91,7 +75,7 @@ export default function Dashboard() {
             </section>
 
             {/* Loading State */}
-            {isAnalyzing && (
+            {isLoading && (
               <section className="bg-white rounded-lg shadow p-6">
                 <div className="text-center">
                   <LoadingState />
@@ -121,11 +105,6 @@ export default function Dashboard() {
                 </section>
 
                 <section className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-4">Interaction Graph</h2>
-                  <InteractionGraph participants={participants} />
-                </section>
-
-                <section className="bg-white rounded-lg shadow p-6">
                   <AdvancedAnalysisCard summary={summary} />
                 </section>
 
@@ -136,11 +115,6 @@ export default function Dashboard() {
                 <section className="bg-white rounded-lg shadow p-6">
                   <TranscriptViewer transcript={transcript} />
                 </section>
-              </div>
-            )}
-            {rawResponse && (
-              <div className="mt-16 mb-8">
-                <JsonDisplay data={rawResponse} />
               </div>
             )}
           </div>

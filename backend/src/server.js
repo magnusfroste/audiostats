@@ -120,7 +120,18 @@ app.post('/analyze', upload.single('audio'), async (req, res) => {
         const base64Audio = audioData.toString('base64');
         console.log('Audio converted to base64, length:', base64Audio.length);
 
-        console.log('Calling OpenAI API...');
+        // Step 1: Get transcription using Whisper
+        console.log('Getting transcription from Whisper...');
+        const transcriptionResponse = await openai.audio.transcriptions.create({
+            file: fs.createReadStream(wavFilePath),
+            model: "whisper-1",
+            response_format: "verbose_json",
+            timestamp_granularities: ["segment"]
+        });
+
+        console.log('Transcription received, now analyzing with GPT-4...');
+        
+        // Step 2: Analyze with GPT-4
         const response = await openai.chat.completions.create({
             model: "gpt-4o-audio-preview",
             messages: [
@@ -141,75 +152,46 @@ app.post('/analyze', upload.single('audio'), async (req, res) => {
                     ]
                 }
             ],
-            temperature: 0.3,
-            max_tokens: 16384
+            temperature: 0.1,
+            max_tokens: 4096
         });
 
         console.log('OpenAI response received');
 
         if (!response.choices?.[0]?.message?.content) {
             console.error('No content in OpenAI response');
-            throw new Error('No valid response content from OpenAI');
+            throw new Error('Invalid response from OpenAI');
         }
 
-        const content = response.choices[0].message.content.trim();
-        console.log('Raw response:', content);
-
-        // Try to find JSON in the response
+        const content = response.choices[0].message.content;
         let analysisData;
+
         try {
-            // First try direct JSON parse
             analysisData = JSON.parse(content);
-            console.log('Successfully parsed JSON directly');
         } catch (parseError) {
             console.error('Direct JSON parse failed:', parseError);
-            
-            // If direct parse fails, try to find JSON object in text
             const jsonMatch = content.match(/\{[\s\S]*\}/);
-            if (!jsonMatch) {
-                console.error('Raw content that failed to parse:', content);
-                throw new Error('Could not find JSON in response');
+            if (jsonMatch) {
+                try {
+                    analysisData = JSON.parse(jsonMatch[0]);
+                } catch (e) {
+                    console.error('Failed to parse matched JSON:', e);
+                    throw new Error('Failed to parse analysis response');
+                }
+            } else {
+                throw new Error('No valid JSON found in response');
             }
-            try {
-                analysisData = JSON.parse(jsonMatch[0]);
-                console.log('Successfully parsed JSON from matched content');
-            } catch (matchParseError) {
-                console.error('Failed to parse matched content:', jsonMatch[0]);
-                throw new Error('Failed to parse JSON from response');
-            }
         }
 
-        // Validate response structure
-        if (!analysisData.participants || !Array.isArray(analysisData.participants)) {
-            console.error('Invalid participants data:', analysisData.participants);
-            throw new Error('Invalid participants data in response');
-        }
-
-        if (!analysisData.transcript || !Array.isArray(analysisData.transcript)) {
-            console.error('Invalid transcript data:', analysisData.transcript);
-            throw new Error('Invalid transcript data in response');
-        }
-
-        if (!analysisData.summary) {
-            console.error('Missing summary data');
-            throw new Error('Missing summary in response');
-        }
-
-        // Add avatars to participants
-        const participantsWithAvatars = analysisData.participants.map((p, i) => {
-            const avatarNumber = (i % 3) + 1;
-            return {
-                ...p,
-                avatar: '/avatars/avatar-' + avatarNumber + '.svg'
-            };
-        });
+        // Add the full Whisper transcription to the response
+        analysisData.fullTranscript = {
+            text: transcriptionResponse.text,
+            segments: transcriptionResponse.segments
+        };
 
         res.json({
             success: true,
-            data: {
-                ...analysisData,
-                participants: participantsWithAvatars
-            }
+            data: analysisData
         });
 
     } catch (error) {

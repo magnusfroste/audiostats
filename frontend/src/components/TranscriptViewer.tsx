@@ -1,36 +1,32 @@
 'use client';
 
-import { TranscriptEntry } from '@/types/analysis';
+interface TranscriptSegment {
+  text: string;
+  start: number;
+  end: number;
+}
 
 interface TranscriptViewerProps {
-  transcript: TranscriptEntry[];
+  transcript: {
+    text: string;
+    segments: TranscriptSegment[];
+  } | null;
 }
 
 export default function TranscriptViewer({ transcript }: TranscriptViewerProps) {
-  const totalEntries = transcript.length;
-  const totalDuration = transcript[transcript.length - 1]?.timestamp || "0:00";
+  if (!transcript) return null;
 
   return (
-    <div className="space-y-4">
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Transcript</h2>
-        <div className="text-gray-600">
-          {totalEntries} entries over {totalDuration} minutes
-        </div>
-      </div>
-
-      <div className="space-y-8">
-        {transcript.map((entry, index) => (
-          <div key={index} className="flex gap-8">
-            <div className="text-gray-500 w-20 flex-shrink-0">
-              {entry.timestamp}
+    <div className="bg-white rounded-lg shadow p-6">
+      <h2 className="text-xl font-semibold mb-4">Transcript</h2>
+      <div className="space-y-4">
+        {transcript.segments.map((segment, index) => (
+          <div key={index} className="border-b pb-2">
+            <div className="text-sm text-gray-500">
+              {new Date(segment.start * 1000).toISOString().substr(11, 8)} - 
+              {new Date(segment.end * 1000).toISOString().substr(11, 8)}
             </div>
-            <div className="flex-1">
-              <div className="font-medium mb-2">{entry.speaker}</div>
-              <div className="text-gray-600">
-                {entry.text}
-              </div>
-            </div>
+            <div className="mt-1">{segment.text}</div>
           </div>
         ))}
       </div>

@@ -21,15 +21,6 @@ Return ONLY JSON with the following structure. IMPORTANT: Be consistent with spe
       "dominantEmotions": ["engaged", "supportive"]
     }
   ],
-  "transcript": [
-    {
-      "timestamp": "00:01:23",
-      "speaker": "speaker_1",  // Use speaker ID, not name
-      "text": "Spoken text here - RETURN FULL TEXT WITHOUT ABBREVIATIONS",
-      "emotion": "engaged",
-      "topic": "project planning"
-    }
-  ],
   "summary": {
     "totalDuration": ${duration},
     "totalSpeakingTime": 180.5,
@@ -82,21 +73,12 @@ Return ONLY JSON with the following structure. IMPORTANT: Be consistent with spe
       "dominantEmotions": ["engaged", "collaborative"],
       "emotionalDynamics": "Stable positive tone with increased enthusiasm during project discussions"
     },
-    "interactionPatterns": {
-      "frequentInteractions": [
-        {
-          "between": ["speaker_1", "speaker_2"],  // Use speaker IDs
-          "count": 15,
-          "nature": "collaborative"
-        }
-      ],
-      "interruptions": {
-        "total": 5,
-        "mostFrequent": {
-          "interrupter": "speaker_1",  // Use speaker ID
-          "interrupted": "speaker_2",  // Use speaker ID
-          "count": 2
-        }
+    "interruptions": {
+      "total": 5,
+      "mostFrequent": {
+        "interrupter": "speaker_1",  // Use speaker ID
+        "interrupted": "speaker_2",  // Use speaker ID
+        "count": 2
       }
     }
   }
@@ -111,11 +93,7 @@ CRITICAL RULES for speaker IDs:
 6. Number speakers from 1 upwards without gaps (speaker_1, speaker_2, speaker_3, etc)
 
 Important Information:
-1. Transcription:
-   - Transcribe everything and transcribe into the language spoken in the meeting
-   - Make NO abbreviations or summaries of the text
-   - Analyze emotional tone and topic for each statement
-2. Time Measurement:
+1. Time Measurement:
    - totalDuration: ${duration} seconds (total audio file length)
    - totalSpeakingTime: Sum of all participants' speaking time in seconds
    - totalTalkTime: Total time with active speech (including overlapping speech)
@@ -136,7 +114,6 @@ Be sure to:
 11. Analyze emotional tone and dynamics in the conversation
 12. Identify and document decisions and action items
 13. Assess discussion quality and provide constructive improvement suggestions
-14. RETURN THE COMPLETE TRANSCRIPTION OF EVERY SINGLE WORD IN THE MEETING
-15. Analyze emotional tone and dynamics in the conversation`;
+14. Analyze emotional tone and dynamics in the conversation`;
 
 module.exports = { generateAnalysisPrompt };
