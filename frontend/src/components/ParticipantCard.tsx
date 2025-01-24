@@ -35,11 +35,6 @@ export default function ParticipantCard({ participant, totalDuration }: Particip
         <div>
           <div className="flex justify-between text-sm mb-1">
             <span>Emotional Tone</span>
-            <span className="text-gray-500">
-              +{participant.emotionalTone.positive}% / 
-              ={participant.emotionalTone.neutral}% / 
-              -{participant.emotionalTone.negative}%
-            </span>
           </div>
           <div className="flex h-2 rounded-full overflow-hidden bg-gray-100">
             <div 

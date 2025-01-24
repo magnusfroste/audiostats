@@ -8,6 +8,7 @@ const ffmpeg = require('fluent-ffmpeg');
 const path = require('path');
 const fs = require('fs');
 const { generateAnalysisPrompt } = require('./prompt');
+const { mockAnalysisResponse } = require('./mockData');
 
 const app = express();
 
@@ -46,7 +47,15 @@ app.get('/health', (req, res) => {
 });
 
 // Audio analysis endpoint
+const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
+
 app.post('/analyze', upload.single('audio'), async (req, res) => {
+    // If using mock data, return it immediately
+    if (USE_MOCK_DATA) {
+        console.log('Using mock data for analysis');
+        return res.json(mockAnalysisResponse);
+    }
+
     let tempFilePath = null;
     let wavFilePath = null;
 
