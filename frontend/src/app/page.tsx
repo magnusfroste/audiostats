@@ -63,67 +63,40 @@ export default function Dashboard() {
 
   return (
     <ErrorBoundary>
-      <main className="min-h-screen bg-gray-100 p-4">
-        <div className="max-w-7xl mx-auto">
-          <h1 className="text-3xl font-bold mb-8">Meet Anna - Your Team Focused Assistant</h1>
-          
-          <div className="grid gap-6">
-            {/* File Upload Section */}
-            <section className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold mb-4">Upload Audio</h2>
-              <FileUploader onFileSelect={handleFileUpload} disabled={isLoading} />
-              {error && (
-                <div className="mt-4 p-4 bg-red-50 text-red-700 rounded-md">
-                  {error}
-                </div>
-              )}
-            </section>
-
-            {/* Loading State */}
-            {isLoading && (
-              <section className="bg-white rounded-lg shadow p-6">
-                <div className="text-center">
-                  <LoadingState />
-                  <p className="mt-4 text-gray-600">Processing your audio file. This may take a few minutes...</p>
-                </div>
-              </section>
-            )}
-
-            {/* Results Section */}
-            {participants.length > 0 && summary && (
-              <div className="space-y-6">
-                <section className="bg-white rounded-lg shadow p-6">
-                  <SummaryCard summary={summary} />
-                </section>
-
-                <section className="bg-white rounded-lg shadow p-6">
-                  <h2 className="text-xl font-semibold mb-4">Participants</h2>
-                  <div className="grid gap-4">
-                    {participants.map((participant) => (
-                      <ParticipantCard 
-                        key={participant.id} 
-                        participant={participant}
-                        totalDuration={summary.totalDuration}
-                      />
-                    ))}
-                  </div>
-                </section>
-
-                <section className="bg-white rounded-lg shadow p-6">
-                  <AdvancedAnalysisCard summary={summary} />
-                </section>
-
-                <section className="bg-white rounded-lg shadow p-6">
-                  <MeetingInsightsCard summary={summary} />
-                </section>
-
-                <section className="bg-white rounded-lg shadow p-6">
-                  <TranscriptViewer transcript={transcript} />
-                </section>
-              </div>
-            )}
+      <main className="container mx-auto px-4 py-8">
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-2">Meet Anna - Your Team Focused Assistant</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-2xl font-semibold text-gray-700">Meeting Analysis</h2>
           </div>
+          <FileUploader onFileSelect={handleFileUpload} disabled={isLoading} />
         </div>
+
+        {error && (
+          <div className="bg-red-50 border-l-4 border-red-400 p-4 mb-8">
+            <p className="text-red-700">{error}</p>
+          </div>
+        )}
+
+        {isLoading && <LoadingState />}
+
+        {summary && !isLoading && (
+          <div className="space-y-8">
+            <SummaryCard summary={summary} />
+            <div className="grid gap-4">
+              {participants.map((participant) => (
+                <ParticipantCard 
+                  key={participant.id} 
+                  participant={participant}
+                  totalDuration={summary.totalDuration}
+                />
+              ))}
+            </div>
+            <AdvancedAnalysisCard summary={summary} />
+            <MeetingInsightsCard summary={summary} />
+            {transcript && <TranscriptViewer transcript={transcript} />}
+          </div>
+        )}
       </main>
     </ErrorBoundary>
   );

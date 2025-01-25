@@ -12,26 +12,44 @@ const { mockAnalysisResponse } = require('./mockData');
 
 const app = express();
 
+// Ensure uploads directory exists before configuring anything else
+const uploadDir = process.env.UPLOAD_DIR || path.join(__dirname, '../uploads/');
+try {
+    if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true, mode: 0o755 });
+    }
+} catch (error) {
+    console.error('Error creating uploads directory:', error);
+}
+
 // Configure CORS
 app.use(cors({
     origin: '*',
-    methods: ['GET', 'POST'],
+    methods: ['GET', 'POST', 'OPTIONS'],
     allowedHeaders: ['Content-Type']
 }));
 
-// Configure multer for file uploads
+// Configure multer for file uploads with error handling
 const upload = multer({ 
-    dest: process.env.UPLOAD_DIR || 'uploads/',
+    dest: uploadDir,
     limits: {
         fileSize: 100 * 1024 * 1024 // 100MB limit
     }
-});
+}).single('audio');
 
-// Ensure uploads directory exists
-const uploadDir = process.env.UPLOAD_DIR || 'uploads/';
-if (!fs.existsSync(uploadDir)) {
-    fs.mkdirSync(uploadDir, { recursive: true });
-}
+// Wrap multer middleware to handle errors
+const handleUpload = (req, res, next) => {
+    upload(req, res, (err) => {
+        if (err) {
+            console.error('Upload error:', err);
+            return res.status(400).json({ 
+                success: false, 
+                error: err.message || 'File upload failed' 
+            });
+        }
+        next();
+    });
+};
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -49,7 +67,7 @@ app.get('/health', (req, res) => {
 // Audio analysis endpoint
 const USE_MOCK_DATA = process.env.USE_MOCK_DATA === 'true';
 
-app.post('/analyze', upload.single('audio'), async (req, res) => {
+app.post('/analyze', handleUpload, async (req, res) => {
     // If using mock data, return it immediately
     if (USE_MOCK_DATA) {
         console.log('Using mock data for analysis');
