@@ -216,6 +216,23 @@ app.post('/analyze', handleUpload, async (req, res) => {
             segments: transcriptionResponse.segments
         };
 
+        // Add development information about token usage
+        analysisData.developmentInfo = {
+            models: {
+                transcription: "whisper-1",
+                analysis: "gpt-4o-audio-preview"
+            },
+            tokenUsage: response?.usage ? {
+                completion: response.usage.completion_tokens || 0,
+                prompt: response.usage.prompt_tokens || 0,
+                total: response.usage.total_tokens || 0
+            } : {
+                completion: 0,
+                prompt: 0,
+                total: 0
+            }
+        };
+
         res.json({
             success: true,
             data: analysisData

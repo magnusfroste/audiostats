@@ -10,11 +10,13 @@ import TranscriptViewer from '@/components/TranscriptViewer';
 import AdvancedAnalysisCard from '@/components/AdvancedAnalysisCard';
 import MeetingInsightsCard from '@/components/MeetingInsightsCard';
 import JsonDisplay from '@/components/JsonDisplay';
+import DevelopmentInfo from '@/components/DevelopmentInfo';
 import type { 
   Participant, 
   TranscriptEntry, 
   AnalysisSummary,
-  Transcript
+  Transcript,
+  DevelopmentInfo as DevelopmentInfoType
 } from '@/types/analysis';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3001';
@@ -25,6 +27,7 @@ export default function Dashboard() {
   const [summary, setSummary] = useState<AnalysisSummary | null>(null);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [transcript, setTranscript] = useState<Transcript | null>(null);
+  const [developmentInfo, setDevelopmentInfo] = useState<DevelopmentInfoType | null>(null);
 
   const handleFileUpload = async (file: File) => {
     setIsLoading(true);
@@ -53,6 +56,7 @@ export default function Dashboard() {
       setSummary(analysisData.summary);
       setParticipants(analysisData.participants);
       setTranscript(analysisData.fullTranscript);
+      setDevelopmentInfo(analysisData.developmentInfo);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -95,6 +99,7 @@ export default function Dashboard() {
             <AdvancedAnalysisCard summary={summary} />
             <MeetingInsightsCard summary={summary} />
             {transcript && <TranscriptViewer transcript={transcript} />}
+            {developmentInfo && <DevelopmentInfo developmentInfo={developmentInfo} />}
           </div>
         )}
       </main>

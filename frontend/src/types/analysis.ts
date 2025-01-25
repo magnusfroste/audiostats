@@ -108,3 +108,22 @@ export interface Transcript {
   text: string;
   segments: TranscriptSegment[];
 }
+
+export interface DevelopmentInfo {
+  models: {
+    transcription: string;
+    analysis: string;
+  };
+  tokenUsage: {
+    completion: number;
+    prompt: number;
+    total: number;
+  };
+}
+
+export interface AnalysisResponse {
+  summary: AnalysisSummary;
+  participants: Participant[];
+  fullTranscript: Transcript;
+  developmentInfo: DevelopmentInfo;
+}
