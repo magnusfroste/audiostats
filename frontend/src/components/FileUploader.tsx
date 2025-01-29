@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
+import { AudioRecorder } from './AudioRecorder';
 
 interface FileUploaderProps {
   onFileSelect: (file: File) => void;
@@ -55,47 +56,24 @@ export function FileUploader({ onFileSelect, disabled = false }: FileUploaderPro
   });
 
   return (
-    <div className="space-y-4">
-      <div
-        {...getRootProps()}
-        className={`
-          relative border-2 border-dashed rounded-lg p-8 text-center cursor-pointer
-          transition-all duration-200 ease-in-out
-          ${isDragActive ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400'}
-          ${disabled ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}
-        `}
-      >
-        <input {...getInputProps()} />
-        <div className="space-y-2">
-          <svg 
-            className="mx-auto h-12 w-12 text-gray-400"
-            stroke="currentColor"
-            fill="none"
-            viewBox="0 0 48 48"
-            aria-hidden="true"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M24 8v20m0-20l-8 8m8-8l8 8m-8 12a8 8 0 100-16 8 8 0 000 16z"
-            />
-          </svg>
-          <div className="text-sm text-gray-600">
-            {disabled ? (
-              <p>Processing audio...</p>
-            ) : (
-              <>
-                <p className="font-medium">Drop your audio file here or click to browse</p>
-                <p className="mt-1">Supports MP3, WAV, M4A, and AAC</p>
-                <p className="mt-1 text-xs text-gray-500">Maximum file size: 50MB</p>
-              </>
-            )}
-          </div>
+    <div className="w-full space-y-6">
+      <div className="flex items-center justify-center space-x-4 mb-4">
+        <AudioRecorder onRecordingComplete={onFileSelect} disabled={disabled} />
+        <span className="text-gray-400">or</span>
+        <div {...getRootProps()} className={`flex-1 p-8 border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors
+          ${isDragActive ? 'border-blue-400 bg-blue-50' : 'border-gray-300 hover:border-blue-400'}
+          ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
+          <input {...getInputProps()} />
+          <p className="text-gray-600">
+            {isDragActive ? 'Drop the audio file here' : 'Drag & drop an audio file here, or click to select'}
+          </p>
+          <p className="text-sm text-gray-500 mt-2">
+            Supports MP3, WAV, M4A, or AAC (max 50MB)
+          </p>
         </div>
       </div>
       {error && (
-        <div className="text-sm text-red-600 bg-red-50 rounded-md p-3">
+        <div className="text-red-500 text-sm text-center">
           {error}
         </div>
       )}
