@@ -160,7 +160,7 @@ app.post('/analyze', handleUpload, async (req, res) => {
         
         // Step 2: Analyze with GPT-4
         const response = await openai.chat.completions.create({
-            model: "gpt-4o-audio-preview",
+            model: "gpt-4o-mini-audio-preview",
             messages: [
                 {
                     role: "user",
