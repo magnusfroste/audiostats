@@ -76,9 +76,11 @@ app.post('/analyze', handleUpload, async (req, res) => {
 
     let tempFilePath = null;
     let wavFilePath = null;
+    let processingStep = 'start';
 
     try {
         console.log('Starting audio analysis...');
+        processingStep = 'file validation';
         
         if (!req.file) {
             throw new Error('No audio file provided');
@@ -90,46 +92,63 @@ app.post('/analyze', handleUpload, async (req, res) => {
             throw new Error('Audio file too large. Maximum size is 100MB');
         }
 
-        console.log('Received audio file:', req.file.originalname, 'Size:', req.file.size);
+        console.log(`[Step: ${processingStep}] Received file:`, {
+            name: req.file.originalname,
+            size: req.file.size,
+            type: req.file.mimetype
+        });
 
         // Create temporary file paths
+        processingStep = 'creating temp files';
         tempFilePath = req.file.path;
         wavFilePath = path.join('uploads', `${req.file.filename}.wav`);
         
-        console.log('Temporary files:', { tempFilePath, wavFilePath });
+        console.log(`[Step: ${processingStep}] Paths:`, { tempFilePath, wavFilePath });
 
         // Convert to WAV
-        console.log('Starting WAV conversion...');
+        processingStep = 'wav conversion';
+        console.log(`[Step: ${processingStep}] Starting...`);
+        
         await new Promise((resolve, reject) => {
             ffmpeg(tempFilePath)
                 .toFormat('wav')
+                .audioChannels(1)  // Convert to mono
+                .audioFrequency(16000)  // Reduce sample rate
                 .on('start', (command) => {
-                    console.log('Started ffmpeg with command:', command);
+                    console.log(`[Step: ${processingStep}] Command:`, command);
                 })
                 .on('progress', (progress) => {
-                    console.log('Processing: ', progress.percent, '% done');
+                    if (progress && progress.percent) {
+                        console.log(`[Step: ${processingStep}] Progress: ${Math.round(progress.percent)}%`);
+                    }
                 })
                 .on('end', () => {
-                    console.log('Successfully converted to WAV');
-                    resolve();
+                    try {
+                        const wavStats = fs.statSync(wavFilePath);
+                        console.log(`[Step: ${processingStep}] Complete. WAV size: ${wavStats.size} bytes`);
+                        resolve();
+                    } catch (err) {
+                        reject(new Error(`WAV file check failed: ${err.message}`));
+                    }
                 })
                 .on('error', (err) => {
-                    console.error('Error converting to WAV:', err);
-                    reject(err);
+                    reject(new Error(`WAV conversion failed: ${err.message}`));
                 })
                 .save(wavFilePath);
         });
 
         // Get audio duration
-        console.log('Getting audio duration...');
+        processingStep = 'duration check';
+        console.log(`[Step: ${processingStep}] Starting...`);
+        
         const duration = await new Promise((resolve, reject) => {
             ffmpeg.ffprobe(wavFilePath, (err, metadata) => {
                 if (err) {
-                    console.error('Error getting audio duration:', err);
+                    console.error(`[Step: ${processingStep}] Error:`, err);
                     reject(err);
                 } else {
                     const duration = metadata.format.duration || 0;
-                    console.log('Audio duration:', duration, 'seconds');
+                    console.log(`[Step: ${processingStep}] Complete. Duration: ${duration} seconds`);
                     resolve(duration);
                 }
             });
@@ -148,17 +167,28 @@ app.post('/analyze', handleUpload, async (req, res) => {
         console.log('Audio converted to base64, length:', base64Audio.length);
 
         // Step 1: Get transcription using Whisper
-        console.log('Getting transcription from Whisper...');
+        processingStep = 'whisper transcription';
+        console.log(`[Step: ${processingStep}] Starting...`);
+        
         const transcriptionResponse = await openai.audio.transcriptions.create({
             file: fs.createReadStream(wavFilePath),
             model: "whisper-1",
             response_format: "verbose_json",
             timestamp_granularities: ["segment"]
+        }).catch(err => {
+            console.error(`[Step: ${processingStep}] Error:`, err);
+            if (err.response?.data) {
+                console.error('API Response:', err.response.data);
+            }
+            throw new Error(`Transcription failed: ${err.message}`);
         });
 
-        console.log('Transcription received, now analyzing with GPT-4...');
+        console.log(`[Step: ${processingStep}] Complete. Text length: ${transcriptionResponse.text.length}`);
         
         // Step 2: Analyze with GPT-4
+        processingStep = 'gpt-4 analysis';
+        console.log(`[Step: ${processingStep}] Starting...`);
+        
         const response = await openai.chat.completions.create({
             model: "gpt-4o-mini-audio-preview",
             messages: [
@@ -183,10 +213,10 @@ app.post('/analyze', handleUpload, async (req, res) => {
             max_tokens: 4096
         });
 
-        console.log('OpenAI response received');
+        console.log(`[Step: ${processingStep}] Complete. Response received`);
 
         if (!response.choices?.[0]?.message?.content) {
-            console.error('No content in OpenAI response');
+            console.error(`[Step: ${processingStep}] No content in OpenAI response`);
             throw new Error('Invalid response from OpenAI');
         }
 
@@ -196,13 +226,13 @@ app.post('/analyze', handleUpload, async (req, res) => {
         try {
             analysisData = JSON.parse(content);
         } catch (parseError) {
-            console.error('Direct JSON parse failed:', parseError);
+            console.error(`[Step: ${processingStep}] Direct JSON parse failed:`, parseError);
             const jsonMatch = content.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
                 try {
                     analysisData = JSON.parse(jsonMatch[0]);
                 } catch (e) {
-                    console.error('Failed to parse matched JSON:', e);
+                    console.error(`[Step: ${processingStep}] Failed to parse matched JSON:`, e);
                     throw new Error('Failed to parse analysis response');
                 }
             } else {
@@ -239,10 +269,10 @@ app.post('/analyze', handleUpload, async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error in POST handler:', error);
+        console.error(`Error in ${processingStep}:`, error);
         res.status(500).json({
             success: false,
-            error: error instanceof Error ? error.message : 'Ett oväntat fel uppstod'
+            error: `Failed during ${processingStep}: ${error.message}`
         });
     } finally {
         // Clean up temporary files

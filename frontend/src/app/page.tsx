@@ -42,12 +42,12 @@ export default function Dashboard() {
         body: formData,
       });
 
-      if (!response.ok) {
-        throw new Error('Analysis failed');
-      }
-
       const rawResponse = await response.json();
       
+      if (!response.ok) {
+        throw new Error(rawResponse.error || 'Server error: ' + response.status);
+      }
+
       if (!rawResponse.success) {
         throw new Error(rawResponse.error || 'Unknown error occurred');
       }
