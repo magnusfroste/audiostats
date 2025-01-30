@@ -56,6 +56,14 @@ const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY
 });
 
+// Configuration
+const config = {
+    models: {
+        transcription: "whisper-1",
+        analysis: process.env.GPT4_AUDIO_MODEL || "gpt-4o-mini-audio-preview"
+    }
+};
+
 // Middleware
 app.use(express.json());
 
@@ -172,7 +180,7 @@ app.post('/analyze', handleUpload, async (req, res) => {
         
         const transcriptionResponse = await openai.audio.transcriptions.create({
             file: fs.createReadStream(wavFilePath),
-            model: "whisper-1",
+            model: config.models.transcription,
             response_format: "verbose_json",
             timestamp_granularities: ["segment"]
         }).catch(err => {
@@ -189,15 +197,20 @@ app.post('/analyze', handleUpload, async (req, res) => {
         processingStep = 'gpt-4 analysis';
         console.log(`[Step: ${processingStep}] Starting...`);
         
+        // Calculate prompt tokens from the prompt text
+        const promptText = generateAnalysisPrompt(duration);
+        const promptTokens = Math.ceil(promptText.length / 4); // Rough estimation: ~4 chars per token
+        console.log(`Backend Calc Prompt Tokens: ${promptTokens}`);
+
         const response = await openai.chat.completions.create({
-            model: "gpt-4o-mini-audio-preview",
+            model: config.models.analysis,
             messages: [
                 {
                     role: "user",
                     content: [
                         {
                             type: "text",
-                            text: generateAnalysisPrompt(duration)
+                            text: promptText
                         },
                         {
                             type: "input_audio",
@@ -214,6 +227,20 @@ app.post('/analyze', handleUpload, async (req, res) => {
         });
 
         console.log(`[Step: ${processingStep}] Complete. Response received`);
+        
+        // Log API-reported token usage
+        if (response.usage) {
+            console.log('API Token Usage:', {
+                promptTokens: response.usage.prompt_tokens,
+                completionTokens: response.usage.completion_tokens,
+                totalTokens: response.usage.total_tokens
+            });
+        }
+
+        // Calculate completion tokens from the response
+        const completionText = response.choices?.[0]?.message?.content || '';
+        const completionTokens = Math.ceil(completionText.length / 4); // Rough estimation
+        console.log(`Backend Calc Completion Tokens: ${completionTokens}`);
 
         if (!response.choices?.[0]?.message?.content) {
             console.error(`[Step: ${processingStep}] No content in OpenAI response`);
@@ -246,20 +273,29 @@ app.post('/analyze', handleUpload, async (req, res) => {
             segments: transcriptionResponse.segments
         };
 
-        // Add development information about token usage
+        // Add token calculations and audio info to the development info
         analysisData.developmentInfo = {
             models: {
-                transcription: "whisper-1",
-                analysis: "gpt-4o-audio-preview"
+                transcription: config.models.transcription,
+                analysis: config.models.analysis
             },
-            tokenUsage: response?.usage ? {
-                completion: response.usage.completion_tokens || 0,
-                prompt: response.usage.prompt_tokens || 0,
-                total: response.usage.total_tokens || 0
-            } : {
-                completion: 0,
-                prompt: 0,
-                total: 0
+            audioInfo: {
+                durationSeconds: duration,
+                durationMinutes: Math.ceil(duration / 60),
+                originalSize: req.file.size,
+                wavSize: fs.statSync(wavFilePath).size
+            },
+            tokenUsage: {
+                api: response.usage ? {
+                    completion: response.usage.completion_tokens || 0,
+                    prompt: response.usage.prompt_tokens || 0,
+                    total: response.usage.total_tokens || 0
+                } : null,
+                backendCalc: {
+                    prompt: promptTokens,
+                    completion: completionTokens,
+                    total: promptTokens + completionTokens
+                }
             }
         };
 
