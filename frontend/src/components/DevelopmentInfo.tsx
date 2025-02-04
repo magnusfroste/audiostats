@@ -32,6 +32,12 @@ const formatFileSize = (bytes: number): string => {
   return `${mb.toFixed(2)} MB`;
 };
 
+  /**
+   * Renders a component that displays development information about the meeting.
+   * 
+   * @param developmentInfo An object containing development information about the meeting.
+   * @returns A component that displays development information about the meeting.
+   */
 export default function DevelopmentInfo({ developmentInfo }: DevelopmentInfoProps) {
   return (
     <div className="bg-gray-50 rounded-lg shadow p-4 mt-4">
