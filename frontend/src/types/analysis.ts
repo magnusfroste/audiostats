@@ -114,10 +114,23 @@ export interface DevelopmentInfo {
     transcription: string;
     analysis: string;
   };
+  audioInfo: {
+    durationSeconds: number;
+    durationMinutes: number;
+    originalSize: number;
+    wavSize: number;
+  };
   tokenUsage: {
-    completion: number;
-    prompt: number;
-    total: number;
+    api: {
+      completion: number;
+      prompt: number;
+      total: number;
+    } | null;
+    backendCalc: {
+      completion: number;
+      prompt: number;
+      total: number;
+    };
   };
 }
 
